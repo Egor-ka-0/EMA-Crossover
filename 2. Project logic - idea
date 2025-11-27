@@ -1,0 +1,69 @@
+
+Imagine you are looking at Apple stock and you want a simple rule: when does it make sense to be invested and when is it better to stay out.
+On a normal price chart the line is noisy, some days go up, some go down, and it is very easy to see a “trend” where there is none.
+The EMA crossover idea is a way to turn this intuition into a clear condition.
+
+The basic idea is simple. We are not interested in every small move.
+We want to see that the price has been behaving like a rising market for some time already.
+To do this, we look at two smoothed versions of the price over different periods. One line shows what has been happening recently, this is a short view.
+The other line shows how the price has behaved over a longer period, this is a long view.
+If for Apple the short line stays above the long line, it means recent prices are mostly above the longer term level, the trend really looks upward and it is logical to be in the position.
+When the short line goes below the long line, it is a sign that recent behaviour no longer supports the previous rise and it may be better to exit.
+
+This approach is useful for people who want to make decisions not by gut feeling, but by a simple rule.
+If the last N days look strong compared to the broader background, I am in the market. If not, I am in cash.
+The EMA crossover does not promise perfect entries and exits, but it gives a transparent answer to a very practical question: is this still an upward regime that I want to participate in, or not anymore.
+
+Next, I want to explain what the program does step by step, without formulas and without code.
+1. Getting the data
+First we need price data for one asset, for example Apple.
+The program will:
+- connect to a data source (for example, we will use a library that can download prices),
+- request daily prices for a chosen period,
+- save them in a table with dates and prices.
+After this step we simply have a clean list of days and closing prices that we can work with.
+
+2. Preparing the data
+Raw data is not always ready to use.
+The program will:
+- keep only the columns that we need (for example, date and closing price),
+- sort the data by date,
+- remove rows where prices are missing or clearly broken.
+The goal of this step is to make sure that everything that follows works on neat, consistent data.
+
+3. Adding helper columns (indicators)
+Next we need extra information based on the price.
+The program will:
+- call a small math function to compute a “fast” EMA,
+- call the same kind of function to compute a “slow” EMA,
+- optionally add other helper columns, like daily changes of the price.
+We do not explain the formulas here. All details of how these values are calculated are described in the separate math file for this project.
+Here it is enough to know that after this step our table has, for each day, the price and the two EMA lines that the strategy will use.
+
+4. Creating the trading signal
+Once the EMAs are in the table, we can decide when the strategy is “in” or “out”.
+The program will:
+- compare the fast EMA and the slow EMA for each day,
+- decide for every day whether the strategy wants to be in the market or in cash,
+- store this as a new column, for example with values 1 (in the market) and 0 (in cash).
+At the end of this step we have, for each date, both the market data and the “instruction” of the strategy.
+
+5. Simulating the capital over time
+Now we can ask what happens to our money if we follow this instruction.
+The program will:
+- set an initial capital, for example 10 000,
+- go through the data day by day,
+- if the signal says “in the market”, update the capital according to how the price moved that day,
+- if the signal says “in cash”, keep the capital unchanged for that day,
+- save the capital value for every day in a new column.
+We also build a second capital path for a simple “buy and hold” approach, where we are always in the market from the start to the end. This gives us two curves to compare.
+
+6. Summaries and plots
+
+Finally we want to see the results in a clear way.
+The program will:
+- calculate summary numbers, such as total profit or loss and the worst fall in capital,
+- plot the price of the asset together with the two EMA lines,
+- plot the capital curve of the strategy and the capital curve of buy and hold.
+These outputs are the main “answer” of the project.
+They show how the EMA crossover rule would have behaved on this data and how it differs from simply holding the asset all the time.
